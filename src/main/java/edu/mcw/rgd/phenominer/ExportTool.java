@@ -174,7 +174,7 @@ public class ExportTool {
         List<Condition> conds = r.getConditions();
 
         String buf;
-        buf  = (study.getName() + "\t" + study.getSource() + "\t" + study.getType() + "\t" + study.getReference() + "\t");
+        buf  = (study.getName() + "\t" + study.getSource() + "\t" + study.getType() + "\t" + study.getRefRgdId() + "\t");
         buf += (exp.getName() + "\t" + NV(exp.getNotes()) + "\t");
 
         if( indRecData!=null ) {

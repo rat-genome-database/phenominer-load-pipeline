@@ -1,2 +1,5 @@
+ver 0.1.0 Nov 29, 2018
+  -- started work on import tool
+
 ver 0.0.1 Oct 1, 2018
   -- added script to dump data in csv format
