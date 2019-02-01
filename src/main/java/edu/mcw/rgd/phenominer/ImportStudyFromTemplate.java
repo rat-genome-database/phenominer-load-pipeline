@@ -9,20 +9,24 @@ import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ImportStudy3021 {
+public class ImportStudyFromTemplate {
 
     public static void main(String[] args) throws Exception {
 
-        new ImportStudy3021().run();
+        new ImportStudyFromTemplate().run();
     }
 
-    final int sid = 3021; // STUDY_ID
+    final int sid = 3025; // STUDY_ID
+    String fname = "/tmp/study3025_Harrill2.csv";
+    final String RS_ID1 = "RS:0000681";
+    final String RS_ID2 = "RS:0004674";
+
     PhenominerDAO pdao = new PhenominerDAO();
 
     void run() throws Exception {
 
         // delete records for all experiments
-        if( false ) {
+        if( true ) {
             for (Experiment e : pdao.getExperiments(sid)) {
                 List<Record> records = pdao.getRecords(e.getId());
                 for (Record r : records) {
@@ -34,12 +38,11 @@ public class ImportStudy3021 {
         Study study = pdao.getStudy(sid);
         List<Experiment> experiments = pdao.getExperiments(sid);
 
-        String fname = "/tmp/phenominer_load_study3021.txt";
         BufferedReader bw = Utils.openReader(fname);
 
         String line;
         while( (line=bw.readLine())!=null ) {
-            String[] cols = line.split("[\\t]", -1);
+            String[] cols = line.split("[\\,]", -1);
 
             // vt id must be in column 0
             int vt;
@@ -67,7 +70,7 @@ public class ImportStudy3021 {
             er1.setMeasurementSem(cols[strainCol+2]);
 
             Sample s1 = new Sample();
-            s1.setStrainAccId("RS:0000681"); // SD
+            s1.setStrainAccId(RS_ID1);
             s1.setAgeDaysFromLowBound(Integer.parseInt(cols[strainCol+4]));
             s1.setAgeDaysFromHighBound(s1.getAgeDaysFromLowBound());
             s1.setNumberOfAnimals(Integer.parseInt(cols[strainCol+3]));
@@ -91,12 +94,18 @@ public class ImportStudy3021 {
                 }
                 Condition cond = new Condition();
                 cond.setOntologyId(xcoId);
-                // duration string: 2419200 s
+
+                // duration string: '2419200 s', or '12 hrs'
+                long multiplier = 0;
                 String sDuration = cols[ecCol+3];
                 if( sDuration.endsWith(" s") ) {
                     sDuration = sDuration.substring(0, sDuration.length() - 2).trim();
+                    multiplier = 1;
+                } else if( sDuration.endsWith(" hrs") ) {
+                    sDuration = sDuration.substring(0, sDuration.length() - 4).trim();
+                    multiplier = 60 * 60; // hours to seconds
                 }
-                long duration = Long.parseLong(sDuration);
+                long duration = Long.parseLong(sDuration) * multiplier;
                 cond.setDurationLowerBound(duration);
                 cond.setDurationUpperBound(duration);
                 // cond value, f.e. '5 ml/kg'
@@ -127,7 +136,7 @@ public class ImportStudy3021 {
             er2.setMeasurementSem(cols[strainCol+2]);
 
             Sample s2 = new Sample();
-            s2.setStrainAccId("RS:0004674"); // SD/AHR
+            s2.setStrainAccId(RS_ID2);
             s2.setAgeDaysFromLowBound(Integer.parseInt(cols[strainCol+4]));
             s2.setAgeDaysFromHighBound(s1.getAgeDaysFromLowBound());
             s2.setNumberOfAnimals(Integer.parseInt(cols[strainCol+3]));
