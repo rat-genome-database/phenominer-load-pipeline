@@ -1,8 +1,11 @@
+Apr 05, 2022
+  loader for study 3188, file ver2
+
 Nov 04, 2020
-  -- added loader code for study 3101
+  added loader code for study 3101
 
-ver 0.1.0 Nov 29, 2018
-  -- started work on import tool
+Nov 29, 2018
+  started work on import tool
 
-ver 0.0.1 Oct 1, 2018
-  -- added script to dump data in csv format
+Oct 1, 2018
+  added script to dump data in csv format

@@ -22,7 +22,6 @@ public class ImportStudy3188 extends ImportCommon {
     final int sid = 3188; // STUDY_ID
     final String STRAIN_ONT_ID="RS:0002539";
     final int NUMBER_OF_ANIMALS = 467;
-    final String SEX = "male";
 
     void run() throws Exception {
 
@@ -39,6 +38,151 @@ public class ImportStudy3188 extends ImportCommon {
             System.out.println("records deleted: "+recordsDeleted);
         }
 
+        Study study = pdao.getStudy(sid);
+        List<Experiment> experiments = pdao.getExperiments(sid);
+        int recordsInserted = 0;
+
+        Map<Integer, String> animalIds = new HashMap<>(); // excel col --> 'animal_id'
+
+        String fname = "../resources/study3188_ver2.txt";
+        BufferedReader bw = Utils.openReader(fname);
+
+        int row = 0;
+        String line;
+        while( (line=bw.readLine())!=null ) {
+            row++;
+            String[] cols = line.split("[\\t]", -1);
+            if (cols.length < 483) {
+                continue;
+            }
+
+            // load animal ids
+            if( row==3 ) {
+                for( int x=9; x<9+NUMBER_OF_ANIMALS; x++ ) {
+                    String val = cols[x];
+                    if( !Utils.isStringEmpty(val) ) {
+                        animalIds.put(x, val);
+                    }
+                }
+                continue;
+            }
+
+            // vt id must be in column 5
+            String vtId = cols[5];
+            if (!vtId.startsWith("VT:") || vtId.length() != 10) {
+                continue;
+            }
+            int ageInWeeks = Integer.parseInt(cols[0]);
+            String animalCount = cols[1];
+            String sex = cols[2];
+            String cmoNotes = cols[3];
+            String vtName = cols[4];
+            String cmoName = cols[6];
+            String cmoId = cols[7];
+            String units = cols[8];
+            String mmoId = cols[482];
+
+            Experiment experiment = loadExperiment(sid, vtId, vtName, experiments);
+            System.out.println("EID: " + experiment.getId());
+
+            // process individual data as experiment records
+            int nrOfAnimals = Integer.parseInt(animalCount);
+            for( int x=9; x<9+NUMBER_OF_ANIMALS; x++ ) {
+                String val = cols[x];
+                if( !Utils.isStringEmpty(val) ) {
+
+                    Record er = new Record();
+                    er.setExperimentId(experiment.getId());
+                    er.setExperimentName(vtName);
+                    er.setMeasurementUnits(units);
+
+                    Sample s1 = new Sample();
+                    int ageInDays = 7*ageInWeeks;
+                    s1.setStrainAccId(STRAIN_ONT_ID);
+                    s1.setAgeDaysFromLowBound(ageInDays);
+                    s1.setAgeDaysFromHighBound(ageInDays);
+                    s1.setNumberOfAnimals(nrOfAnimals);
+                    s1.setSex(sex);
+                    s1.setBioSampleId(animalIds.get(x));
+                    er.setSample(s1);
+
+                    ClinicalMeasurement cm = new ClinicalMeasurement();
+                    cm.setAccId(cmoId);
+                    cm.setNotes(cmoNotes);
+                    er.setClinicalMeasurement(cm);
+
+                    MeasurementMethod mm = new MeasurementMethod();
+                    mm.setAccId(mmoId);
+                    er.setMeasurementMethod(mm);
+
+                    List<Condition> conditionList = new ArrayList<Condition>();
+                    Condition cond = parseCondition(483, cols);
+                    conditionList.add(cond);
+                    er.setConditions(conditionList);
+
+                    er.setMeasurementValue(val);
+                    er.setHasIndividualRecord(false);
+
+                    pdao.insertRecord(er);
+
+                    recordsInserted++;
+                }
+            }
+        }
+
+        bw.close();
+
+        System.out.println("OK -- records inserted "+recordsInserted);
+    }
+
+    // condcol: cond name, xco id, cond value, cond duration low, cond duration high, cond duration unit, cond ordinality
+    Condition parseCondition(int condCol, String[] cols) throws Exception {
+
+        String condName = cols[condCol+0];
+        String xcoId = cols[condCol+1];
+        String condValue = cols[condCol+2];
+        String condDurLow = cols[condCol+3];
+        String condDurHigh = cols[condCol+4];
+        String condDurUnit = cols[condCol+5].toLowerCase();
+        String condOrdinality = cols[condCol+6];
+
+        Condition cond = new Condition();
+        cond.setOntologyId(xcoId);
+
+        // duration is stored in db in seconds
+        long multiplier = 0;
+        if( !condDurUnit.isEmpty() ) {
+            if( condDurUnit.equals("hours") ) {
+                multiplier = 60 * 60; // hours to seconds
+            } else {
+                throw new Exception("unexpected duration unit");
+            }
+        }
+
+        // duration string: f.e. '16'
+        if( !Utils.isStringEmpty(condDurLow) ) {
+            long duration = Long.parseLong(condDurLow) * multiplier;
+            cond.setDurationLowerBound(duration);
+        }
+        if( !Utils.isStringEmpty(condDurHigh) ) {
+            long duration = Long.parseLong(condDurHigh) * multiplier;
+            cond.setDurationUpperBound(duration);
+        }
+
+        // cond value
+        if( !(condValue.isEmpty() || condValue.toUpperCase().equals("N/A")) ) {
+            throw new Exception("unexpected: add code to handle condition values");
+        }
+        cond.setOrdinality(Integer.parseInt(condOrdinality));
+
+        return cond;
+    }
+
+    /* abandoned, because we don't have ways to properly render individual data in phenominer tool
+
+    void loadAsIndividualData() throws Exception {
+
+        final String SEX = "male";
         Study study = pdao.getStudy(sid);
         List<Experiment> experiments = pdao.getExperiments(sid);
         int recordsInserted = 0;
@@ -167,5 +311,5 @@ public class ImportStudy3188 extends ImportCommon {
 
         System.out.println("OK -- records inserted "+recordsInserted);
     }
-
+    */
 }
