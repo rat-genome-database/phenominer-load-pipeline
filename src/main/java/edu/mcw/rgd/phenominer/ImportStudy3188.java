@@ -25,6 +25,8 @@ public class ImportStudy3188 extends ImportCommon {
 
     void run() throws Exception {
 
+        System.out.println(pdao.getConnectionInfo());
+
         // delete records for all experiments
         if( true ) {
             int recordsDeleted = 0;
@@ -37,6 +39,14 @@ public class ImportStudy3188 extends ImportCommon {
             }
             System.out.println("records deleted: "+recordsDeleted);
         }
+
+        if( loadAsIndividualData() ) {
+            return;
+        }
+
+        ///////
+        /// load individual data NOT as individual data
+        //
 
         Study study = pdao.getStudy(sid);
         List<Experiment> experiments = pdao.getExperiments(sid);
@@ -178,18 +188,16 @@ public class ImportStudy3188 extends ImportCommon {
         return cond;
     }
 
-    /* abandoned, because we don't have ways to properly render individual data in phenominer tool
+    boolean loadAsIndividualData() throws Exception {
 
-    void loadAsIndividualData() throws Exception {
-
-        final String SEX = "male";
         Study study = pdao.getStudy(sid);
         List<Experiment> experiments = pdao.getExperiments(sid);
         int recordsInserted = 0;
 
         Map<Integer, String> animalIds = new HashMap<>(); // excel col --> 'animal_id'
 
-        String fname = "../resources/study3188_individual.txt";
+        //String fname = "../resources/study3188_individual.txt";
+        String fname = "../resources/study3188_ver2.txt";
         BufferedReader bw = Utils.openReader(fname);
 
         int row = 0;
@@ -203,7 +211,7 @@ public class ImportStudy3188 extends ImportCommon {
 
             // load animal ids
             if( row==3 ) {
-                for( int x=7; x<7+NUMBER_OF_ANIMALS; x++ ) {
+                for( int x=9; x<9+NUMBER_OF_ANIMALS; x++ ) {
                     String val = cols[x];
                     if( !Utils.isStringEmpty(val) ) {
                         animalIds.put(x, val);
@@ -212,26 +220,28 @@ public class ImportStudy3188 extends ImportCommon {
                 continue;
             }
 
-            // vt id must be in column 3
-            String vtId = cols[3];
+            // vt id must be in column 5
+            String vtId = cols[5];
             if (!vtId.startsWith("VT:") || vtId.length() != 10) {
                 continue;
             }
             int ageInWeeks = Integer.parseInt(cols[0]);
-            String vtName = cols[2];
-            String cmoNotes = cols[1];
-            String cmoId = cols[5];
-            String cmoName = cols[4];
-            String units = cols[6];
-            String mmoId = cols[480];
-            String xcoId = cols[482];
+            String animalCount = cols[1];
+            String sex = cols[2];
+            String cmoNotes = cols[3];
+            String vtName = cols[4];
+            String cmoName = cols[6];
+            String cmoId = cols[7];
+            String units = cols[8];
+            String mmoId = cols[482];
+            String xcoId = cols[484];
 
             Experiment experiment = loadExperiment(sid, vtId, vtName, experiments);
             System.out.println("EID: " + experiment.getId());
 
             // process individual data
             List<IndividualRecord> indData = new ArrayList<>();
-            for( int x=7; x<7+NUMBER_OF_ANIMALS; x++ ) {
+            for( int x=9; x<9+NUMBER_OF_ANIMALS; x++ ) {
                 String val = cols[x];
                 if( !Utils.isStringEmpty(val) ) {
                     IndividualRecord indRec = new IndividualRecord();
@@ -253,7 +263,7 @@ public class ImportStudy3188 extends ImportCommon {
             s1.setAgeDaysFromLowBound(ageInDays);
             s1.setAgeDaysFromHighBound(ageInDays);
             s1.setNumberOfAnimals(nrOfAnimals);
-            s1.setSex(SEX);
+            s1.setSex(sex);
             er1.setSample(s1);
 
             ClinicalMeasurement cm = new ClinicalMeasurement();
@@ -310,6 +320,7 @@ public class ImportStudy3188 extends ImportCommon {
         bw.close();
 
         System.out.println("OK -- records inserted "+recordsInserted);
+        System.out.println("==== HARD EXIT =====");
+        return true;
     }
-    */
 }

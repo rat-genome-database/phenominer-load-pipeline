@@ -1,3 +1,6 @@
+May 21, 2022
+  study 3188: reverted code to load data as individual records
+
 Apr 26, 2022
   study 3200: import
 
