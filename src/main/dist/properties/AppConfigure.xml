@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.phenominer.ImportStudy3188">
-        <property name="version" value="Phenominer Load Pipeline   -- build Jun 21, 2022" />
+        <property name="version" value="Phenominer Load Pipeline   -- build Jun 22, 2022" />
         <property name="pipelineName" value="Phenominer Load Pipeline" />
     </bean>
 </beans>

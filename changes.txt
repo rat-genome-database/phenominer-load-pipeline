@@ -1,3 +1,8 @@
+May 22, 2022
+  study 3188: fix to properly load XCO
+  study 3200: changed code to load as individual records
+  study 3200: added new data set for rat strain NMcwi:HS
+
 May 21, 2022
   study 3188: reverted code to load data as individual records
 

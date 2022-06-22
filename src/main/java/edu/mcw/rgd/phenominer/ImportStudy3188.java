@@ -276,8 +276,7 @@ public class ImportStudy3188 extends ImportCommon {
             er1.setMeasurementMethod(mm);
 
             List<Condition> conditionList = new ArrayList<Condition>();
-            Condition cond = new Condition();
-            cond.setOntologyId(xcoId);
+            Condition cond = parseCondition(483, cols);
             conditionList.add(cond);
             cond.setOrdinality(conditionList.size());
             er1.setConditions(conditionList);
