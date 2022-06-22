@@ -192,8 +192,8 @@ public class ImportStudy3200 extends ImportCommon {
         }
 
         // for this study, convert 'g' into 'grams'
-        if( units.equals("g") ) {
-            units = "grams";
+        if( units.equals("grams") ) {
+            units = "g";
         }
 
         return units;
