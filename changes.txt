@@ -1,3 +1,6 @@
+Aug 16, 2022
+  study 3188: added new data for loading
+
 May 22, 2022
   study 3188: fix to properly load XCO
   study 3200: changed code to load as individual records
