@@ -1,6 +1,7 @@
 package edu.mcw.rgd.phenominer;
 
 import edu.mcw.rgd.dao.impl.PhenominerDAO;
+import edu.mcw.rgd.datamodel.pheno.Record;
 import edu.mcw.rgd.datamodel.pheno.*;
 import edu.mcw.rgd.process.Utils;
 

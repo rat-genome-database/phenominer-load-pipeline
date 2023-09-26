@@ -1,6 +1,7 @@
 package edu.mcw.rgd.phenominer;
 
 import edu.mcw.rgd.dao.impl.PhenominerDAO;
+import edu.mcw.rgd.datamodel.pheno.Record;
 import edu.mcw.rgd.datamodel.pheno.*;
 import edu.mcw.rgd.process.Utils;
 
@@ -32,7 +33,7 @@ public class ImportCommon {
         return exp;
     }
 
-    Record parseStrainRecord(int expId, String cmoId, String[] cols, int strainCol, String rsId, String units) {
+    edu.mcw.rgd.datamodel.pheno.Record parseStrainRecord(int expId, String cmoId, String[] cols, int strainCol, String rsId, String units) {
 
         boolean noStrainInfo = Utils.isStringEmpty( String.join("", cols[strainCol], cols[strainCol+1], cols[strainCol+2], cols[strainCol+3], cols[strainCol+4], cols[strainCol+5], cols[strainCol+6]));
         if( noStrainInfo ) {
@@ -162,5 +163,21 @@ public class ImportCommon {
             var6.printStackTrace();
         }
 
+    }
+
+    Double getDurationInSecs(String duration, String unit) {
+
+        if( duration==null || unit==null ) {
+            return null;
+        }
+
+        double val = Double.parseDouble(duration);
+        if( unit.equals("hr") ) {
+            return val*60*60;
+        }
+        if( unit.equals("week") ) {
+            return val*60*60*24*7;
+        }
+        return null;
     }
 }
