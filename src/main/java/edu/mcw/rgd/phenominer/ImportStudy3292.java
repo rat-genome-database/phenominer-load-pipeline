@@ -24,7 +24,7 @@ public class ImportStudy3292 extends ImportCommon {
         }
     }
 
-    final int sid = 3322; // STUDY_ID -- 3292 curation -- 3322 dev
+    final int sid = 3292; // STUDY_ID
 
     void run() throws Exception {
 

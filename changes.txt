@@ -1,3 +1,6 @@
+Apr 23, 2024
+  updated to java 17
+
 Sep 26, 2023
   updated to new gradle version
 
