@@ -43,7 +43,30 @@ public class ImportStudy3292 extends ImportCommon {
 
         Study study = pdao.getStudy(sid);
 
+        run("../resources/study3292_BN_female_top.txt");
+        run("../resources/study3292_BN_female_bottom.txt");
+        run("../resources/study3292_BN_male_top.txt");
+        run("../resources/study3292_BN_male_bottom.txt");
+
+        run("../resources/study3292_BUF_female_top.txt");
+        run("../resources/study3292_BUF_female_bottom.txt");
+        run("../resources/study3292_BUF_male_top.txt");
+        run("../resources/study3292_BUF_male_bottom.txt");
+
+        run("../resources/study3292_F344_female_top.txt");
+        run("../resources/study3292_F344_female_bottom.txt");
+        run("../resources/study3292_F344_male_top.txt");
+        run("../resources/study3292_F344_male_bottom.txt");
+
+        run("../resources/study3292_M520_female_top.txt");
+        run("../resources/study3292_M520_female_bottom.txt");
+        run("../resources/study3292_M520_male_top.txt");
+        run("../resources/study3292_M520_male_bottom.txt");
+
+        run("../resources/study3292_WKY_female_top.txt");
+        run("../resources/study3292_WKY_female_bottom.txt");
         run("../resources/study3292_WKY_male_top.txt");
+        run("../resources/study3292_WKY_male_bottom.txt");
     }
 
     void run(String fname) throws Exception {
@@ -60,6 +83,7 @@ public class ImportStudy3292 extends ImportCommon {
         int rat1col = 0;
         int ratncol = 0;
         int xcoCol = 0;
+        int xcoCol2 = 0;
 
         int row = 0;
         String line;
@@ -94,6 +118,15 @@ public class ImportStudy3292 extends ImportCommon {
                 for (int x = rat1col; x<=ratncol; x++) {
                     String val = cols[x];
                     animalIds.put(x, val);
+                }
+
+                if( xcoCol > 0 ) {
+                    for (int y = xcoCol + 1; y < cols.length; y++) {
+                        if (cols[y].compareToIgnoreCase("Ordinality") == 0) {
+                            xcoCol2 = y;
+                            break;
+                        }
+                    }
                 }
                 continue;
             }
@@ -149,10 +182,7 @@ public class ImportStudy3292 extends ImportCommon {
                 }
             }
 
-
             Experiment experiment = loadExperiment(sid, vtId, vtName, experiments);
-            System.out.println("EID: " + experiment.getId());
-
 
             // process individual data
             List<IndividualRecord> indData = new ArrayList<>();
@@ -192,10 +222,22 @@ public class ImportStudy3292 extends ImportCommon {
             mm.setNotes(mmoNotes);
             er.setMeasurementMethod(mm);
 
+
             List<Condition> conditionList = new ArrayList<Condition>();
-            Condition cond = parseCondition(xcoCol, cols);
-            conditionList.add(cond);
+
+            // 1st condition
+            Condition cond1 = parseCondition(xcoCol, cols);
+            if( cond1!=null ) {
+                conditionList.add(cond1);
+            }
+
+            Condition cond2 = parseCondition(xcoCol2, cols);
+            if( cond2!=null ) {
+                conditionList.add(cond2);
+            }
+
             er.setConditions(conditionList);
+
 
             double avg = 0.0, sd = 0.0, sem = 0.0;
             if( nrOfAnimals==1 ) {
@@ -283,6 +325,14 @@ public class ImportStudy3292 extends ImportCommon {
         String condMaxDurationUnit = getText(cols[condCol+9]);
         String applicationMethod = getText(cols[condCol+10]);
         String condNotes = getText(cols[condCol+11]);
+
+        if( Utils.isStringEmpty(xcoId) || Utils.isStringEmpty(condOrdinality) ) {
+            return null;
+        }
+
+        if( xcoId.equals("XCO:0000102") ) {
+            System.out.println("   2nd cond");
+        }
 
         Condition cond = new Condition();
         cond.setOntologyId(xcoId);

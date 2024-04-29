@@ -170,9 +170,12 @@ public class ImportCommon {
         if( duration==null || unit==null ) {
             return null;
         }
+        if( duration.equalsIgnoreCase("na") || unit.equalsIgnoreCase("na") ) {
+            return null;
+        }
 
         double val = Double.parseDouble(duration);
-        if( unit.equals("hr") ) {
+        if( unit.equals("hr") || unit.equals("hour") ) {
             return val*60*60;
         }
         if( unit.equals("week") ) {
