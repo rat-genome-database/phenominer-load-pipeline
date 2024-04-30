@@ -1,6 +1,8 @@
 package edu.mcw.rgd.phenominer;
 
+import edu.mcw.rgd.dao.impl.OntologyXDAO;
 import edu.mcw.rgd.dao.impl.PhenominerDAO;
+import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.pheno.Record;
 import edu.mcw.rgd.datamodel.pheno.*;
 import edu.mcw.rgd.process.Utils;
@@ -13,8 +15,25 @@ import java.util.List;
 public class ImportCommon {
 
     PhenominerDAO pdao = new PhenominerDAO();
+    OntologyXDAO odao = new OntologyXDAO();
 
-    Experiment loadExperiment(int sid, String vtID, String vtName, List<Experiment> experimentsInRgd) throws Exception {
+    Experiment loadExperiment(int sid, String vtID, String _vtName, List<Experiment> experimentsInRgd) throws Exception {
+
+        String vtName = _vtName.trim();
+        if( vtName.endsWith(" (") ) {
+            vtName = vtName.substring(0, vtName.length()-2);
+        }
+
+        // qc vt name
+        Term t = odao.getTerm(vtID);
+        if( t==null ) {
+            throw new Exception("Cannot find a term with accession "+vtID);
+        }
+        if( t.getTerm().compareToIgnoreCase(vtName) != 0 ) {
+            throw new Exception("VT ontology mismatch for "+vtID+":\n"
+                +"  VT name in db: ["+t.getTerm()+"]\n"
+                +"  VT name provided: ["+vtName+"]");
+        }
 
         // find a matching experiment in RGD
         for( Experiment exp: experimentsInRgd ) {

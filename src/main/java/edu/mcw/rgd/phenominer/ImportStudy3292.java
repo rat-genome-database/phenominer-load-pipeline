@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /** load phenominer study from Excel templates, Sep, 2023
- *
+ *  the study was loaded in April 2024
  */
 public class ImportStudy3292 extends ImportCommon {
 
@@ -42,6 +42,12 @@ public class ImportStudy3292 extends ImportCommon {
         }
 
         Study study = pdao.getStudy(sid);
+//System.exit(0);
+
+        run("../resources/study3292_ACI_female_top.txt");
+        run("../resources/study3292_ACI_female_bottom.txt");
+        run("../resources/study3292_ACI_male_top.txt");
+        run("../resources/study3292_ACI_male_bottom.txt");
 
         run("../resources/study3292_BN_female_top.txt");
         run("../resources/study3292_BN_female_bottom.txt");
