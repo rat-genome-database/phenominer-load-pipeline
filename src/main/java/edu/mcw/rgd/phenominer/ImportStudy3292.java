@@ -97,186 +97,191 @@ public class ImportStudy3292 extends ImportCommon {
             row++;
             String[] cols = line.split("[\\t]", -1);
 
-            // determine columns for individual data and xcoCol
-            if (row == 2) {
-                for (int x = 1; x<cols.length; x++) {
-                    String val = cols[x];
-                    if (val.startsWith("rat")) {
-                        if( rat1col==0 ) {
-                            rat1col = x;
+            try {
+                // determine columns for individual data and xcoCol
+                if (row == 2) {
+                    for (int x = 1; x < cols.length; x++) {
+                        String val = cols[x];
+                        if (val.startsWith("rat")) {
+                            if (rat1col == 0) {
+                                rat1col = x;
+                            }
+                        } else {
+                            if (rat1col > 0 && ratncol == 0) {
+                                ratncol = x - 1;
+                                colPastAnimalData = x;
+                            }
                         }
-                    } else {
-                        if( rat1col>0 && ratncol==0) {
-                            ratncol = x-1;
-                            colPastAnimalData = x;
-                        }
-                    }
 
-                    if( val.startsWith("XCO") && xcoCol==0) {
-                        xcoCol = x;
-                    }
-                }
-                continue;
-            }
-
-            // load animal ids
-            if (row == 3) {
-                for (int x = rat1col; x<=ratncol; x++) {
-                    String val = cols[x];
-                    animalIds.put(x, val);
-                }
-
-                if( xcoCol > 0 ) {
-                    for (int y = xcoCol + 1; y < cols.length; y++) {
-                        if (cols[y].compareToIgnoreCase("Ordinality") == 0) {
-                            xcoCol2 = y;
-                            break;
+                        if (val.startsWith("XCO") && xcoCol == 0) {
+                            xcoCol = x;
                         }
                     }
+                    continue;
                 }
-                continue;
-            }
 
-            String rsId = cols[1];
-            if( rsId==null || rsId.isEmpty() ) {
-                continue;
-            }
-            String sex = cols[2];
-            int ageInDays = Integer.parseInt(cols[3]);
+                // load animal ids
+                if (row == 3) {
+                    for (int x = rat1col; x <= ratncol; x++) {
+                        String val = cols[x];
+                        animalIds.put(x, val);
+                    }
 
-            String vtName = cols[5];
-            String vtId = cols[6];
-            if (!vtId.startsWith("VT:") || vtId.length() != 10) {
-                continue;
-            }
-
-            String cmoNotes = cols[7];
-            String cmoName = cols[8];
-            String cmoId = cols[9];
-            String units = parseUnits(cols[10]);
-            String cmoSiteName = cols[11];
-            String cmoSiteAcc = cols[12]; // UBERON:
-
-
-            int mmoIdCol = colPastAnimalData;
-            for (; mmoIdCol < cols.length; mmoIdCol++) {
-                if (cols[mmoIdCol].startsWith("MMO:")) {
-                    break;
+                    if (xcoCol > 0) {
+                        for (int y = xcoCol + 1; y < cols.length; y++) {
+                            if (cols[y].compareToIgnoreCase("Ordinality") == 0) {
+                                xcoCol2 = y;
+                                break;
+                            }
+                        }
+                    }
+                    continue;
                 }
-            }
-            String mmoId = cols[mmoIdCol];
 
-            Double mmoDurationInSecs = null;
-            String mmoDuration = cols[mmoIdCol+1];
-            String mmoDurationUnit = cols[mmoIdCol+2];
-            if( !Utils.isStringEmpty(mmoDuration) && !Utils.isStringEmpty(mmoDurationUnit) ) {
-                mmoDurationInSecs = getDurationInSecs(mmoDuration, mmoDurationUnit);
-            }
-            String mmoNotes = null;
-            {
-                String val = cols[mmoIdCol-2];
-                if( !Utils.isStringEmpty(val) ) {
-                    mmoNotes = val;
+                String rsId = getText(cols, 1);
+                if (rsId == null || rsId.isEmpty()) {
+                    continue;
                 }
-                val = cols[mmoIdCol-3];
-                if( !Utils.isStringEmpty(val) ) {
-                    if( mmoNotes==null ) {
+                String sex = getText(cols, 2);
+                int ageInDays = Integer.parseInt(cols[3]);
+
+                String vtName = getText(cols, 5);
+                String vtId = getText(cols, 6);
+                if (!vtId.startsWith("VT:") || vtId.length() != 10) {
+                    continue;
+                }
+
+                String cmoNotes = getText(cols, 7);
+                String cmoName = getText(cols, 8);
+                String cmoId = getText(cols, 9);
+                String units = parseUnits(getText(cols, 10));
+                String cmoSiteName = getText(cols, 11);
+                String cmoSiteAcc = getText(cols, 12); // UBERON:
+
+
+                int mmoIdCol = colPastAnimalData;
+                for (; mmoIdCol < cols.length; mmoIdCol++) {
+                    if (cols[mmoIdCol].startsWith("MMO:")) {
+                        break;
+                    }
+                }
+                String mmoId = getText(cols, mmoIdCol);
+
+                Double mmoDurationInSecs = null;
+                String mmoDuration = getText(cols, mmoIdCol + 1);
+                String mmoDurationUnit = getText(cols, mmoIdCol + 2);
+                if (!Utils.isStringEmpty(mmoDuration) && !Utils.isStringEmpty(mmoDurationUnit)) {
+                    mmoDurationInSecs = getDurationInSecs(mmoDuration, mmoDurationUnit);
+                }
+                String mmoNotes = null;
+                {
+                    String val = getText(cols, mmoIdCol - 2);
+                    if (!Utils.isStringEmpty(val)) {
                         mmoNotes = val;
-                    } else {
-                        mmoNotes += "; "+val;
+                    }
+                    val = getText(cols, mmoIdCol - 3);
+                    if (!Utils.isStringEmpty(val)) {
+                        if (mmoNotes == null) {
+                            mmoNotes = val;
+                        } else {
+                            mmoNotes += "; " + val;
+                        }
                     }
                 }
-            }
 
-            Experiment experiment = loadExperiment(sid, vtId, vtName, experiments);
+                Experiment experiment = loadExperiment(sid, vtId, vtName, experiments);
 
-            // process individual data
-            List<IndividualRecord> indData = new ArrayList<>();
-            for (int x = rat1col; x < colPastAnimalData; x++) {
-                String val = cols[x];
-                if( !Utils.isStringEmpty(val) && !val.equals("NA") ) {
-                    IndividualRecord indRec = new IndividualRecord();
-                    indRec.setAnimalId(animalIds.get(x));
-                    indRec.setMeasurementValue(val);
-                    indData.add(indRec);
+                // process individual data
+                List<IndividualRecord> indData = new ArrayList<>();
+                for (int x = rat1col; x < colPastAnimalData; x++) {
+                    String val = getText(cols, x);
+                    if (!Utils.isStringEmpty(val) && !val.equals("NA")) {
+                        IndividualRecord indRec = new IndividualRecord();
+                        indRec.setAnimalId(animalIds.get(x));
+                        indRec.setMeasurementValue(val);
+                        indData.add(indRec);
+                    }
                 }
-            }
-            int nrOfAnimals = indData.size();
-            System.out.println("EID: " + experiment.getId()+"   nr of animals: "+nrOfAnimals);
+                int nrOfAnimals = indData.size();
+                System.out.println("EID: " + experiment.getId() + "   nr of animals: " + nrOfAnimals);
 
-            Record er = new Record();
-            er.setExperimentId(experiment.getId());
-            er.setExperimentName(vtName);
-            er.setMeasurementUnits(units);
+                Record er = new Record();
+                er.setExperimentId(experiment.getId());
+                er.setExperimentName(vtName);
+                er.setMeasurementUnits(units);
 
-            Sample s1 = new Sample();
-            s1.setStrainAccId(rsId);
-            s1.setAgeDaysFromLowBound(ageInDays);
-            s1.setAgeDaysFromHighBound(ageInDays);
-            s1.setNumberOfAnimals(nrOfAnimals);
-            s1.setSex(sex);
-            er.setSample(s1);
+                Sample s1 = new Sample();
+                s1.setStrainAccId(rsId);
+                s1.setAgeDaysFromLowBound(ageInDays);
+                s1.setAgeDaysFromHighBound(ageInDays);
+                s1.setNumberOfAnimals(nrOfAnimals);
+                s1.setSex(sex);
+                er.setSample(s1);
 
-            ClinicalMeasurement cm = new ClinicalMeasurement();
-            cm.setAccId(cmoId);
-            cm.setNotes(cmoNotes);
-            er.setClinicalMeasurement(cm);
+                ClinicalMeasurement cm = new ClinicalMeasurement();
+                cm.setAccId(cmoId);
+                cm.setNotes(cmoNotes);
+                er.setClinicalMeasurement(cm);
 
-            MeasurementMethod mm = new MeasurementMethod();
-            mm.setAccId(mmoId);
-            mm.setDuration(mmoDurationInSecs==null ? null : mmoDurationInSecs.toString());
-            mm.setNotes(mmoNotes);
-            er.setMeasurementMethod(mm);
-
-
-            List<Condition> conditionList = new ArrayList<Condition>();
-
-            // 1st condition
-            Condition cond1 = parseCondition(xcoCol, cols);
-            if( cond1!=null ) {
-                conditionList.add(cond1);
-            }
-
-            Condition cond2 = parseCondition(xcoCol2, cols);
-            if( cond2!=null ) {
-                conditionList.add(cond2);
-            }
-
-            er.setConditions(conditionList);
+                MeasurementMethod mm = new MeasurementMethod();
+                mm.setAccId(mmoId);
+                mm.setDuration(mmoDurationInSecs == null ? null : mmoDurationInSecs.toString());
+                mm.setNotes(mmoNotes);
+                er.setMeasurementMethod(mm);
 
 
-            double avg = 0.0, sd = 0.0, sem = 0.0;
-            if( nrOfAnimals==1 ) {
-                avg = Double.parseDouble(indData.get(0).getMeasurementValue());
-            } else if( nrOfAnimals>1 ) {
+                List<Condition> conditionList = new ArrayList<Condition>();
 
-                for( int i=0; i<indData.size(); i++ ) {
-                    avg += Double.parseDouble(indData.get(i).getMeasurementValue());
+                // 1st condition
+                Condition cond1 = parseCondition(xcoCol, cols);
+                if (cond1 != null) {
+                    conditionList.add(cond1);
                 }
-                avg /= nrOfAnimals;
 
-                double sum2 = 0.0;
-                for( int i=0; i<indData.size(); i++ ) {
-                    double dval = Double.parseDouble(indData.get(i).getMeasurementValue());
-                    sum2 += (dval-avg)*(dval-avg);
+                Condition cond2 = parseCondition(xcoCol2, cols);
+                if (cond2 != null) {
+                    conditionList.add(cond2);
                 }
-                sd = Math.sqrt(sum2 / (nrOfAnimals-1));
-                sem = sd / Math.sqrt(nrOfAnimals);
-            }
 
-            er.setMeasurementValue(Float.toString((float)avg));
-            er.setMeasurementSD(Float.toString((float)sd));
-            er.setMeasurementSem(Float.toString((float)sem));
-            er.setHasIndividualRecord(true);
+                er.setConditions(conditionList);
 
-            pdao.insertRecord(er);
 
-            recordsInserted++;
+                double avg = 0.0, sd = 0.0, sem = 0.0;
+                if (nrOfAnimals == 1) {
+                    avg = Double.parseDouble(indData.get(0).getMeasurementValue());
+                } else if (nrOfAnimals > 1) {
 
-            for( int i=0; i<indData.size(); i++ ) {
-                IndividualRecord irec = indData.get(i);
-                irec.setRecordId(er.getId());
-                pdao.insertIndividualRecord(irec);
+                    for (int i = 0; i < indData.size(); i++) {
+                        avg += Double.parseDouble(indData.get(i).getMeasurementValue());
+                    }
+                    avg /= nrOfAnimals;
+
+                    double sum2 = 0.0;
+                    for (int i = 0; i < indData.size(); i++) {
+                        double dval = Double.parseDouble(indData.get(i).getMeasurementValue());
+                        sum2 += (dval - avg) * (dval - avg);
+                    }
+                    sd = Math.sqrt(sum2 / (nrOfAnimals - 1));
+                    sem = sd / Math.sqrt(nrOfAnimals);
+                }
+
+                er.setMeasurementValue(Float.toString((float) avg));
+                er.setMeasurementSD(Float.toString((float) sd));
+                er.setMeasurementSem(Float.toString((float) sem));
+                er.setHasIndividualRecord(true);
+
+                pdao.insertRecord(er);
+
+                recordsInserted++;
+
+                for (int i = 0; i < indData.size(); i++) {
+                    IndividualRecord irec = indData.get(i);
+                    irec.setRecordId(er.getId());
+                    pdao.insertIndividualRecord(irec);
+                }
+            } catch( Exception e) {
+                System.out.println("*** EXCEPTION: line # "+row+"   ["+line+"]");
+                throw e;
             }
         }
 
@@ -319,18 +324,18 @@ public class ImportStudy3292 extends ImportCommon {
     // condcol: cond name, xco id, cond value, cond duration low, cond duration high, cond duration unit, cond ordinality
     Condition parseCondition(int condCol, String[] cols) throws Exception {
 
-        String condOrdinality = getText(cols[condCol+0]);
-        String condName = getText(cols[condCol+1]);
-        String xcoId = getText(cols[condCol+2]);
-        String condMinValue = getText(cols[condCol+3]);
-        String condMaxValue = getText(cols[condCol+4]);
-        String condValueUnit = getText(cols[condCol+5]);
-        String condMinDuration = getText(cols[condCol+6]);
-        String condMinDurationUnit = getText(cols[condCol+7]);
-        String condMaxDuration = getText(cols[condCol+8]);
-        String condMaxDurationUnit = getText(cols[condCol+9]);
-        String applicationMethod = getText(cols[condCol+10]);
-        String condNotes = getText(cols[condCol+11]);
+        String condOrdinality = getText(cols, condCol+0);
+        String condName = getText(cols, condCol+1);
+        String xcoId = getText(cols, condCol+2);
+        String condMinValue = getText(cols, condCol+3);
+        String condMaxValue = getText(cols, condCol+4);
+        String condValueUnit = getText(cols, condCol+5);
+        String condMinDuration = getText(cols, condCol+6);
+        String condMinDurationUnit = getText(cols, condCol+7);
+        String condMaxDuration = getText(cols, condCol+8);
+        String condMaxDurationUnit = getText(cols, condCol+9);
+        String applicationMethod = getText(cols, condCol+10);
+        String condNotes = getText(cols, condCol+11);
 
         if( Utils.isStringEmpty(xcoId) || Utils.isStringEmpty(condOrdinality) ) {
             return null;
@@ -372,6 +377,14 @@ public class ImportStudy3292 extends ImportCommon {
         cond.setNotes(condNotes);
 
         return cond;
+    }
+
+    String getText( String[] cols, int colNr ) {
+
+        if( colNr >= 0 && colNr < cols.length ) {
+            return getText(cols[colNr]);
+        }
+        return null;
     }
 
     String getText( String s ) {
